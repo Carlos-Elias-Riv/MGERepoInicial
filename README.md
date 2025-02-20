@@ -7,3 +7,5 @@ Este repositorio contiene un conjunto de scripts en Python diseñados para proce
 Los scripts incluidos en este repositorio permiten realizar la preprocesamiento, limpieza, transformación y fusión de datos para facilitar la construcción de modelos de predicción de ventas.
 
 ![alt text](https://github.com/Carlos-Elias-Riv/MGERepoInicial/blob/main/DirectoryHierarchy.png)
+
+![flujo datos](https://github.com/Carlos-Elias-Riv/MGERepoInicial/blob/main/FlujoDatos.png)
