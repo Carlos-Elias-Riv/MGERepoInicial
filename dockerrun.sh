@@ -1,0 +1,1 @@
+docker run -it -v /workspaces/Arquitectura/proyectoMGETiendas:/usr/src/app train data/model/model.pkl

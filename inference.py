@@ -23,11 +23,10 @@ Uso:
 """
 
 import joblib
-
+from src.model import construct_model
 import pandas as pd
+import argparse
 
-
-clf = joblib.load("data/model/model.pkl")
 
 
 def run_predict(shop_id, item_id):
@@ -39,6 +38,7 @@ def run_predict(shop_id, item_id):
     Returns:
         float: Predicción del modelo
     """
+    clf = construct_model()
     result = pd.read_csv("data/prep/joined_data.csv")
     result = result[(result['item_id'] == item_id) &
                     (result['shop_id'] == shop_id)]
@@ -51,3 +51,16 @@ def run_predict(shop_id, item_id):
     prediction = clf.predict(new_observation)
 
     return prediction[0]
+
+def main():
+    parser = argparse.ArgumentParser(description='Predicción de ventas')
+    parser.add_argument("--shop_id", type = int, help="Id de la tienda")
+    parser.add_argument("--item_id", type = int, help="Id del item")
+    args = parser.parse_args()
+    result = run_predict(args.shop_id, args.item_id)
+    
+    with open("prediction.txt", "w") as f:
+        f.write(f"Predicción de ventas: {result}")
+        
+if __name__ == "__main__":
+    main()

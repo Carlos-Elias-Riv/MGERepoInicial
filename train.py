@@ -18,7 +18,33 @@ import pandas as pd
 import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
+import argparse
+import threading
 
+class TimeoutException(Exception):
+    pass
+
+def dump_with_timeout(clf, path_for_model, timeout=180):
+    """
+    Guarda un modelo en un archivo con un tiempo límite.
+    """
+    def target():
+        try:
+            joblib.dump(clf, path_for_model)
+        except Exception as e:
+            global exception
+            exception = e
+
+    exception = None
+    thread = threading.Thread(target=target)
+    thread.start()
+    thread.join(timeout)  # Wait for 'timeout' seconds
+
+    if thread.is_alive():
+        raise TimeoutException(f"joblib.dump took longer than {timeout} seconds and was forcefully stopped.")
+
+    if exception:
+        raise exception
 
 def construct_model():
     """
@@ -49,7 +75,7 @@ def construct_model():
     return clf
 
 
-def train_and_save_model():
+def train_and_save_model(path_for_model="data/model/model.pkl"):
     """
     Entrena el modelo y lo guarda en un archivo.
 
@@ -57,4 +83,20 @@ def train_and_save_model():
     en `data/model/model.pkl` utilizando `joblib`.
     """
     clf = construct_model()
-    joblib.dump(clf, "data/model/model.pkl")
+    try: 
+        dump_with_timeout(clf, path_for_model)
+    except TimeoutException as e:
+        print("timeout: ", e)
+    except Exception as e:
+        print("other exception: ", e)
+    
+def main():
+    parser = argparse.ArgumentParser(description='Entrenar modelo')
+    parser.add_argument("path_for_model", type = str, help="Ruta para cargar el modelo")
+
+    args = parser.parse_args()
+    
+    train_and_save_model(args.path_for_model)   
+        
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,1 @@
+docker run -it -v /workspaces/Arquitectura/proyectoMGETiendas:/usr/src/app inference --shop_id 5 --item_id 5037

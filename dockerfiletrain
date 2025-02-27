@@ -1,0 +1,7 @@
+FROM python:3.11.2
+WORKDIR /usr/src/app
+RUN python -m pip install \
+    pandas scikit-learn joblib
+
+COPY train.py .
+CMD ["python", "train.py"]

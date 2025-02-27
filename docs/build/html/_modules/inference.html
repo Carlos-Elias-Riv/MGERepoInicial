@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>inference &#8212; Tarea 5 MGE  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for inference</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Módulo de Predicción de Ventas</span>
+
+<span class="sd">Este módulo carga un modelo de aprendizaje automático previamente entrenado </span>
+<span class="sd">y proporciona una función para realizar predicciones de ventas para una </span>
+<span class="sd">combinación específica de tienda y artículo.</span>
+
+<span class="sd">Dependencias:</span>
+<span class="sd">    - joblib</span>
+<span class="sd">    - pandas</span>
+
+<span class="sd">Funciones:</span>
+<span class="sd">    - run_predict(shop_id, item_id): Realiza una predicción de ventas para </span>
+<span class="sd">      un artículo específico en una tienda determinada utilizando el modelo cargado.</span>
+
+<span class="sd">Uso:</span>
+<span class="sd">    Importa el módulo y llama a la función `run_predict` con los identificadores </span>
+<span class="sd">    de tienda y artículo como argumentos.</span>
+
+<span class="sd">    Ejemplo:</span>
+<span class="sd">        prediction = run_predict(25, 1234)</span>
+<span class="sd">        print(f&quot;Predicción de ventas: {prediction}&quot;)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">joblib</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">construct_model</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+
+
+
+<div class="viewcode-block" id="run_predict">
+<a class="viewcode-back" href="../inference.html#inference.run_predict">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_predict</span><span class="p">(</span><span class="n">shop_id</span><span class="p">,</span> <span class="n">item_id</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Correr la predicción del modelo dado un item y una tienda.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        shop_id (int): Id de la tienda.</span>
+<span class="sd">        item_id (int): Id del item.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        float: Predicción del modelo</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">clf</span> <span class="o">=</span> <span class="n">construct_model</span><span class="p">()</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;data/prep/joined_data.csv&quot;</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="p">[(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;item_id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">item_id</span><span class="p">)</span> <span class="o">&amp;</span>
+                    <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;shop_id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">shop_id</span><span class="p">)]</span>
+    <span class="n">mean_price</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;item_price&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;item_id&#39;</span><span class="p">,</span> <span class="s1">&#39;item_price&#39;</span><span class="p">,</span> <span class="s1">&#39;date_block_num&#39;</span><span class="p">,</span> <span class="s1">&#39;shop_id&#39;</span><span class="p">,</span> <span class="s1">&#39;month&#39;</span><span class="p">]</span>
+    <span class="c1"># 34 y 11 hardcodeados porque son los correspondientes a predecir el siguiente mes</span>
+    <span class="n">new_observation</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([[</span><span class="n">item_id</span><span class="p">,</span> <span class="n">mean_price</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="n">shop_id</span><span class="p">,</span> <span class="mi">11</span><span class="p">]],</span>
+                                   <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
+
+    <span class="n">prediction</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">new_observation</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">prediction</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../inference.html#inference.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Predicción de ventas&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--shop_id&quot;</span><span class="p">,</span> <span class="nb">type</span> <span class="o">=</span> <span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Id de la tienda&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--item_id&quot;</span><span class="p">,</span> <span class="nb">type</span> <span class="o">=</span> <span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Id del item&quot;</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">run_predict</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">shop_id</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">item_id</span><span class="p">)</span>
+    
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;prediction.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Predicción de ventas: </span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+        
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Tarea 5 MGE</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../inference.html">Inferencia</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../train.html">Entrenamiento</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Carlos Rivera.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.1</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
